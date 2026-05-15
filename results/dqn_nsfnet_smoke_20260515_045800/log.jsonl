@@ -1,0 +1,30 @@
+{"episode": 1, "train_reward": 576.0, "train_steps": 16, "eps": 0.9981, "mean_loss": null}
+{"episode": 2, "train_reward": 392.0, "train_steps": 13, "eps": 0.99655625, "mean_loss": null}
+{"episode": 3, "train_reward": 496.0, "train_steps": 17, "eps": 0.9945375, "mean_loss": null}
+{"episode": 4, "train_reward": 512.0, "train_steps": 16, "eps": 0.9926375, "mean_loss": null}
+{"episode": 5, "train_reward": 504.0, "train_steps": 16, "eps": 0.9907375, "mean_loss": null}
+{"episode": 6, "train_reward": 624.0, "train_steps": 20, "eps": 0.9883625, "mean_loss": null}
+{"episode": 7, "train_reward": 480.0, "train_steps": 14, "eps": 0.9867, "mean_loss": null}
+{"episode": 8, "train_reward": 472.0, "train_steps": 19, "eps": 0.98444375, "mean_loss": null}
+{"episode": 9, "train_reward": 200.0, "train_steps": 5, "eps": 0.98385, "mean_loss": null}
+{"episode": 10, "train_reward": 568.0, "train_steps": 13, "eps": 0.98230625, "mean_loss": null}
+{"episode": 11, "train_reward": 592.0, "train_steps": 23, "eps": 0.979575, "mean_loss": null}
+{"episode": 12, "train_reward": 488.0, "train_steps": 14, "eps": 0.9779125, "mean_loss": null}
+{"episode": 13, "train_reward": 656.0, "train_steps": 20, "eps": 0.9755375, "mean_loss": 32.92905044555664}
+{"episode": 14, "train_reward": 296.0, "train_steps": 8, "eps": 0.9745875, "mean_loss": 32.70112347602844}
+{"episode": 15, "train_reward": 304.0, "train_steps": 8, "eps": 0.9736375, "mean_loss": 30.177170515060425}
+{"episode": 16, "train_reward": 608.0, "train_steps": 17, "eps": 0.97161875, "mean_loss": 33.5749734990737}
+{"episode": 17, "train_reward": 632.0, "train_steps": 22, "eps": 0.96900625, "mean_loss": 31.565838727084074}
+{"episode": 18, "train_reward": 408.0, "train_steps": 12, "eps": 0.96758125, "mean_loss": 31.216349760691326}
+{"episode": 19, "train_reward": 168.0, "train_steps": 5, "eps": 0.9669875, "mean_loss": 31.237112045288086}
+{"episode": 20, "train_reward": 672.0, "train_steps": 30, "eps": 0.963425, "mean_loss": 28.785054016113282}
+{"episode": 21, "train_reward": 456.0, "train_steps": 15, "eps": 0.96164375, "mean_loss": 26.562889734903973}
+{"episode": 22, "train_reward": 488.0, "train_steps": 16, "eps": 0.95974375, "mean_loss": 24.459973335266113}
+{"episode": 23, "train_reward": 480.0, "train_steps": 15, "eps": 0.9579625, "mean_loss": 21.669183222452798}
+{"episode": 24, "train_reward": 288.0, "train_steps": 12, "eps": 0.9565375, "mean_loss": 20.490186373392742}
+{"episode": 25, "train_reward": 720.0, "train_steps": 21, "eps": 0.95404375, "mean_loss": 20.51465216137114, "eval": {"agent_mean": 248.4, "agent_std": 40.51468869434887, "agent_steps": 8.8, "shortest_mean": 705.2, "random_mean": 443.2, "load_balance_mean": 841.2}}
+{"episode": 26, "train_reward": 320.0, "train_steps": 11, "eps": 0.9527375, "mean_loss": 18.032338575883344}
+{"episode": 27, "train_reward": 296.0, "train_steps": 11, "eps": 0.95143125, "mean_loss": 30.525483218106356}
+{"episode": 28, "train_reward": 488.0, "train_steps": 15, "eps": 0.94965, "mean_loss": 26.000711059570314}
+{"episode": 29, "train_reward": 408.0, "train_steps": 16, "eps": 0.94775, "mean_loss": 22.92871379852295}
+{"episode": 30, "train_reward": 360.0, "train_steps": 10, "eps": 0.9465625, "mean_loss": 17.992280673980712, "eval": {"agent_mean": 255.6, "agent_std": 41.83586977702268, "agent_steps": 9.05, "shortest_mean": 705.2, "random_mean": 443.2, "load_balance_mean": 841.2}}

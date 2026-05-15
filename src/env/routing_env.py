@@ -7,7 +7,8 @@ Action: pick one of `k` precomputed shortest paths between `src` and `dst`.
 
 Reward: `bw` if the demand fits on the chosen path, else 0 and the episode ends.
 
-This file is intentionally small — the agent/model wiring lives elsewhere.
+`obs` contains both a (mutable) NetworkX graph for the heuristic baselines and
+canonical-edge-ordered NumPy arrays for the GNN encoder / replay buffer.
 """
 from __future__ import annotations
 
@@ -16,6 +17,8 @@ from typing import Optional
 
 import networkx as nx
 import numpy as np
+
+from src.utils.encoding import LineGraphCache, build_line_graph
 
 
 @dataclass
@@ -26,9 +29,6 @@ class Demand:
 
 
 class RoutingEnv:
-    """Gymnasium-style env. We avoid inheriting from `gym.Env` to keep deps light;
-    the API (`reset`, `step`) is identical."""
-
     def __init__(
         self,
         graph: nx.Graph,
@@ -41,21 +41,21 @@ class RoutingEnv:
         self.base_graph = graph.copy()
         self.link_capacity = link_capacity
         self.bw_choices = bw_choices
+        self.max_bw = max(bw_choices)
         self.k_paths = k_paths
         self.max_steps = max_steps
         self.rng = np.random.default_rng(seed)
 
+        self.line_cache: LineGraphCache = build_line_graph(self.base_graph)
         self._candidate_paths = self._precompute_paths()
-        self._betweenness = self._compute_link_betweenness()
+        self._betweenness_arr = self._compute_betweenness_array()
         self.reset()
 
     # ---- topology bookkeeping ------------------------------------------------
     def _precompute_paths(self) -> dict[tuple[int, int], list[list[int]]]:
-        """Cache k shortest (by hops) simple paths for every (src, dst)."""
         cache: dict[tuple[int, int], list[list[int]]] = {}
-        nodes = list(self.base_graph.nodes())
-        for s in nodes:
-            for t in nodes:
+        for s in self.base_graph.nodes():
+            for t in self.base_graph.nodes():
                 if s == t:
                     continue
                 gen = nx.shortest_simple_paths(self.base_graph, s, t)
@@ -67,16 +67,28 @@ class RoutingEnv:
                 cache[(s, t)] = paths
         return cache
 
-    def _compute_link_betweenness(self) -> dict[tuple[int, int], float]:
-        """Fraction of cached k-shortest paths that traverse each link."""
-        counts: dict[tuple[int, int], int] = {tuple(sorted(e)): 0 for e in self.base_graph.edges()}
+    def _compute_betweenness_array(self) -> np.ndarray:
+        counts = np.zeros(self.line_cache.num_edges, dtype=np.float32)
         total = 0
         for paths in self._candidate_paths.values():
             for p in paths:
                 for u, v in zip(p[:-1], p[1:]):
-                    counts[tuple(sorted((u, v)))] += 1
+                    idx = self.line_cache.edge_to_idx[tuple(sorted((u, v)))]
+                    counts[idx] += 1
                 total += 1
-        return {e: c / max(1, total) for e, c in counts.items()}
+        return counts / max(1, total)
+
+    def _path_to_mask(self, path: list[int]) -> np.ndarray:
+        mask = np.zeros(self.line_cache.num_edges, dtype=np.float32)
+        for u, v in zip(path[:-1], path[1:]):
+            mask[self.line_cache.edge_to_idx[tuple(sorted((u, v)))]] = 1.0
+        return mask
+
+    def _capacity_array(self) -> np.ndarray:
+        caps = np.empty(self.line_cache.num_edges, dtype=np.float32)
+        for i, (u, v) in enumerate(self.line_cache.edge_list):
+            caps[i] = self.graph[u][v]["capacity"]
+        return caps
 
     # ---- gym-style API -------------------------------------------------------
     def reset(self, seed: Optional[int] = None) -> dict:
@@ -85,7 +97,9 @@ class RoutingEnv:
         self.graph = self.base_graph.copy()
         for u, v in self.graph.edges():
             self.graph[u][v]["capacity"] = self.link_capacity
-            self.graph[u][v]["betweenness"] = self._betweenness[tuple(sorted((u, v)))]
+            self.graph[u][v]["betweenness"] = float(
+                self._betweenness_arr[self.line_cache.edge_to_idx[tuple(sorted((u, v)))]]
+            )
         self.steps = 0
         self.done = False
         self.current_demand = self._sample_demand()
@@ -130,11 +144,19 @@ class RoutingEnv:
         return self._candidate_paths[(d.src, d.dst)]
 
     def _observe(self) -> dict:
-        """Return a plain-dict observation. The agent decides how to featurize it."""
-        edges = list(self.graph.edges(data=True))
+        if self.done:
+            paths: list[list[int]] = []
+            path_masks = np.zeros((0, self.line_cache.num_edges), dtype=np.float32)
+        else:
+            paths = self.candidate_paths()
+            path_masks = np.stack([self._path_to_mask(p) for p in paths], axis=0)
         return {
-            "graph": self.graph,
+            "graph": self.graph,                          # for heuristic baselines
             "demand": self.current_demand,
-            "candidate_paths": self.candidate_paths() if not self.done else [],
-            "edges": edges,
+            "candidate_paths": paths,
+            "capacities": self._capacity_array(),         # canonical edge order
+            "betweenness": self._betweenness_arr,
+            "path_masks": path_masks,                     # [k, num_edges]
+            "link_capacity": self.link_capacity,
+            "max_bw": self.max_bw,
         }

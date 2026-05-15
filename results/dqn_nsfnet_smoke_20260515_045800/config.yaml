@@ -1,0 +1,30 @@
+experiment_name: dqn_nsfnet
+seed: 0
+device: cuda
+env:
+  topology: nsfnet
+  link_capacity: 200
+  bw_choices:
+  - 8
+  - 32
+  - 64
+  k_paths: 4
+  max_steps: 1000
+agent:
+  hidden: 64
+  n_layers: 3
+  lr: 0.0001
+  gamma: 0.95
+  buffer_size: 4000
+  batch_size: 32
+  target_sync: 200
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay_steps: 8000
+  warmup_steps: 200
+train:
+  episodes: 30
+  learn_every: 1
+  eval_every: 25
+  eval_episodes: 20
+  log_every: 10
