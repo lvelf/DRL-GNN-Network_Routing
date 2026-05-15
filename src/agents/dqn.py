@@ -54,6 +54,8 @@ class DQNAgent:
         eps_end: float = 0.05,
         eps_decay_steps: int = 5000,
         warmup_steps: int = 200,
+        reward_scale: float = 1.0,
+        double_dqn: bool = True,
         device: str = "cuda",
         seed: int = 0,
     ):
@@ -66,6 +68,8 @@ class DQNAgent:
         self.eps_end = eps_end
         self.eps_decay_steps = eps_decay_steps
         self.warmup_steps = warmup_steps
+        self.reward_scale = reward_scale
+        self.double_dqn = double_dqn
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
 
         self.qnet = GNNQNet(in_dim=4, hidden=hidden, n_layers=n_layers).to(self.device)
@@ -137,7 +141,9 @@ class DQNAgent:
         self.qnet.train()
         q_sa = self.qnet(cur_batch.x, cur_batch.edge_index, cur_batch.batch)
 
-        # max_a' Q_target(s', a') for non-terminal next states
+        # Bootstrap target for non-terminal next states.
+        # Vanilla DQN:  y = r + gamma * max_a Q_target(s', a)
+        # Double DQN :  a* = argmax_a Q_online(s', a);  y = r + gamma * Q_target(s', a*)
         with torch.no_grad():
             target_vals = torch.zeros(self.batch_size, device=self.device)
             non_term = [(i, tr) for i, tr in enumerate(batch) if not tr.done and tr.next_state is not None]
@@ -150,14 +156,25 @@ class DQNAgent:
                     for a in range(k):
                         all_next_data.append(_data_from_snapshot(tr.next_state, a, self.line_edge_index))
                 nb = Batch.from_data_list(all_next_data).to(self.device)
-                q_all = self.target(nb.x, nb.edge_index, nb.batch)  # [sum_k]
-                # split into per-transition chunks and take max
+                q_target_all = self.target(nb.x, nb.edge_index, nb.batch)  # [sum_k]
+                if self.double_dqn:
+                    # Use online net (eval mode for deterministic dropout) to pick a*.
+                    was_training = self.qnet.training
+                    self.qnet.eval()
+                    q_online_all = self.qnet(nb.x, nb.edge_index, nb.batch)
+                    if was_training:
+                        self.qnet.train()
                 offset = 0
                 for (i, _), k in zip(non_term, k_per):
-                    target_vals[i] = q_all[offset:offset + k].max()
+                    if self.double_dqn:
+                        a_star = int(q_online_all[offset:offset + k].argmax().item())
+                        target_vals[i] = q_target_all[offset + a_star]
+                    else:
+                        target_vals[i] = q_target_all[offset:offset + k].max()
                     offset += k
 
-        rewards = torch.tensor([tr.reward for tr in batch], dtype=torch.float32, device=self.device)
+        rewards = torch.tensor([tr.reward * self.reward_scale for tr in batch],
+                               dtype=torch.float32, device=self.device)
         y = rewards + self.gamma * target_vals
         loss = F.smooth_l1_loss(q_sa, y)
 

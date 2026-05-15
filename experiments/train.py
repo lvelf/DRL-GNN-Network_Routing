@@ -111,6 +111,8 @@ def main():
         eps_end=a_cfg["eps_end"],
         eps_decay_steps=a_cfg["eps_decay_steps"],
         warmup_steps=a_cfg["warmup_steps"],
+        reward_scale=a_cfg.get("reward_scale", 1.0),
+        double_dqn=a_cfg.get("double_dqn", True),
         device=cfg["device"],
         seed=seed,
     )

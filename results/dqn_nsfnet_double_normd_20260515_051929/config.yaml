@@ -1,18 +1,19 @@
 experiment_name: dqn_nsfnet
 seed: 0
 device: cuda
-
 env:
   topology: nsfnet
   link_capacity: 200
-  bw_choices: [8, 32, 64]
+  bw_choices:
+  - 8
+  - 32
+  - 64
   k_paths: 4
   max_steps: 1000
-
 agent:
   hidden: 64
   n_layers: 3
-  lr: 1.0e-4
+  lr: 0.0001
   gamma: 0.95
   buffer_size: 4000
   batch_size: 32
@@ -21,12 +22,11 @@ agent:
   eps_end: 0.05
   eps_decay_steps: 3000
   warmup_steps: 200
-  reward_scale: 0.015625      # 1/max_bw = 1/64  ->  rewards live in {0.125, 0.5, 1.0}
+  reward_scale: 0.015625
   double_dqn: true
-
 train:
-  episodes: 300
-  learn_every: 1            # one gradient step per env step (once warmed up)
-  eval_every: 25            # eval frequency in episodes
+  episodes: 600
+  learn_every: 1
+  eval_every: 25
   eval_episodes: 20
   log_every: 10
