@@ -1,0 +1,24 @@
+# NSFNet — 14 nodes, 21 edges (undirected)
+# Standard backbone used in Almasan et al. 2022.
+# Format: each line is "u v" (0-indexed nodes).
+0 1
+0 2
+0 7
+1 2
+1 3
+2 5
+3 4
+3 10
+4 5
+4 6
+5 9
+5 13
+6 7
+7 8
+8 9
+8 11
+8 12
+9 13
+10 11
+10 12
+11 12

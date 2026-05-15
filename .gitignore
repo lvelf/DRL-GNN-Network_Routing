@@ -1,1 +1,26 @@
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Envs / IDE
+.venv/
+.idea/
+.vscode/
+
+# Experiment artifacts
+results/**/checkpoints/
+results/**/runs/
+results/**/*.png
+results/**/*.pt
+results/**/*.npy
+!results/.gitkeep
+
+# Data caches (keep topology source files)
+data/cache/
+
+# Logs
+*.log

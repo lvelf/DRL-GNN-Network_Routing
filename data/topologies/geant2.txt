@@ -1,0 +1,40 @@
+# GEANT2 — 24 nodes, 37 edges (undirected)
+# European academic backbone used in Almasan et al. 2022 as the unseen
+# evaluation topology. Format: each line is "u v" (0-indexed nodes).
+0 1
+0 2
+1 3
+1 6
+1 9
+2 3
+2 4
+3 6
+4 7
+5 8
+6 8
+6 9
+7 8
+7 11
+8 11
+8 12
+8 17
+8 18
+9 10
+9 12
+9 13
+10 13
+11 14
+11 20
+12 13
+12 19
+12 21
+13 15
+14 15
+15 16
+16 17
+17 18
+18 21
+19 23
+20 23
+21 22
+22 23
