@@ -1,0 +1,5 @@
+method              mean      std   median    min    max
+agent              883.9    165.3    908.0    328   1384
+shortest           632.5    182.3    616.0    288   1384
+random             436.1    116.5    428.0    208    776
+load_balance       844.7    137.1    836.0    576   1136

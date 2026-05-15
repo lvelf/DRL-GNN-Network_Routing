@@ -32,3 +32,46 @@ POLICIES = {
     "random": random_policy,
     "load_balance": load_balancing_policy,
 }
+
+
+def run_fluid_episode(env, seed: int | None = None) -> float:
+    """Theoretical-fluid reference (Almasan et al. 2022, Sec. V-B).
+
+    For each demand, split the requested bw across the k candidate paths
+    in proportion to their bottleneck available capacity. The split is
+    non-realizable (ODU demands can't actually be fractioned) but gives
+    a fast upper-reference for what an idealized splitting policy could
+    achieve.
+
+    Allocation succeeds iff sum of bottlenecks across candidate paths
+    >= demand bw (then a feasible proportional split exists). Otherwise
+    the episode ends, mirroring the env's failure condition.
+    """
+    obs = env.reset(seed=seed)
+    total = 0.0
+    while not env.done:
+        d = env.current_demand
+        paths = env.candidate_paths()
+
+        bottlenecks = []
+        for p in paths:
+            b = min(env.graph[u][v]["capacity"] for u, v in zip(p[:-1], p[1:]))
+            bottlenecks.append(b)
+        total_b = sum(bottlenecks)
+
+        if total_b < d.bw:
+            env.done = True
+            break
+
+        shares = [d.bw * (b / total_b) for b in bottlenecks]
+        for p, s in zip(paths, shares):
+            for u, v in zip(p[:-1], p[1:]):
+                env.graph[u][v]["capacity"] -= s
+        total += d.bw
+
+        env.steps += 1
+        if env.steps >= env.max_steps:
+            env.done = True
+        else:
+            env.current_demand = env._sample_demand()
+    return total
